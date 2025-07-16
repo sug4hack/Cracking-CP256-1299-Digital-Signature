@@ -1,3 +1,5 @@
+# Tes Vektor ini berdasarkan contoh perhitungan pada https://www.ijcte.org/vol17/IJCTE-V17N2-1371.pdf
+
 from sage.all import *
 
 class CubicPellCurve:
