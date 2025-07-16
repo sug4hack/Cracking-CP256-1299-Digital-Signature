@@ -2,6 +2,7 @@ from sage.all import *
 from hashlib import sha256
 from fpylll import IntegerMatrix, LLL
 import random
+import time
 
 # ==== Kurva Cubic Pell ====
 
@@ -62,15 +63,14 @@ phi = p**2 + p + 1
 a = 7
 curve = CubicPellCurve(p, a)
 
-# Titik dasar G dari publikasi CP256-1299 (diperoleh dari tabel untuk c=7)
 G = curve.point(4, 2, 1)
-G = (p+1) * G  # make sure it's on the curve
+G = (p+1) * G 
 
-# ==== Pembuatan Tanda Tangan dengan α Lemah ====
+
 
 def generate_weak_signature(msg, lam):
     sigma = sha2_as_integer(msg)
-    alpha = random.randint(1, 2**256)  # weak nonce
+    alpha = random.randint(1, 2**256) 
     s = alpha + sigma * lam
     alphaG = alpha * G
     return (s, alphaG, sigma, alpha)
@@ -98,7 +98,7 @@ print("[DEBUG] alpha2 =", alpha2)
 
 # ==== Bangun Matriks Lattice ====
 
-B = 2**256  # 256-bit nonce asumsi
+B = 2**256
 
 M = IntegerMatrix(4, 4)
 M[0, 0] = phi
@@ -111,18 +111,16 @@ M[3, 1] = int(s2)
 M[3, 3] = int(B)
 
 # ==== LLL Reduction ====
-
+start = time.time()
 reduced = LLL.reduction(M)
 
-# ==== Recovery lambda dari baris pendek ====
 
 for row in reduced:
     potential_alpha1 = row[0]
     try:
         recovered_lambda = (s1 - potential_alpha1) // sigma1
-        # Verifikasi: apakah cocok dengan alpha2?
-        alpha2_check = s2 - sigma2 * recovered_lambda
-        if abs(alpha2_check - alpha2) < 100:  # toleransi kecil
+        recovered_pub = recovered_lambda * G
+        if recovered_pub == pub:
             print("\n[✔] Berhasil memulihkan private key λ!")
             print("Recovered λ =", recovered_lambda)
             print("Original  λ =", lam)
@@ -130,8 +128,12 @@ for row in reduced:
     except Exception as e:
         continue
 else:
-    print("\n[✘] Gagal memulihkan λ. Coba lagi dengan nonce lebih lemah atau lebih banyak signature.")
+    print("\n[✘] Gagal memulihkan λ")
 
+# ==== Pengukuran waktu berakhir ====
+end = time.time()
+elapsed = end - start
+print(f"\n⏱ Total waktu eksekusi: {elapsed:.4f} detik")
 
 # === Serangan 2: Leaked Nonce ===
 
@@ -147,8 +149,8 @@ def attack_leaked_nonce(s, sigma, alpha):
 
 msg = "pesan rahasia"
 sigma = sha2_as_integer(msg)
-alpha = randint(1, 2**256)  # nonce acak
-s = alpha + sigma * lam     # signature
+alpha = randint(1, 2**512)  
+s = alpha + sigma * lam
 
 # Asumsikan penyerang tahu s, sigma, alpha
 lam_recovered = attack_leaked_nonce(s, sigma, alpha)
@@ -179,7 +181,7 @@ sigma1 = sha2_as_integer(msg1)
 sigma2 = sha2_as_integer(msg2)
 
 # Gunakan nonce α yang sama
-alpha = randint(1, 2**256)
+alpha = randint(1, 2**512)
 s1 = alpha + sigma1 * lam
 s2 = alpha + sigma2 * lam
 
@@ -215,8 +217,8 @@ x1 = randint(1, phi)
 x2 = randint(1, phi)
 
 # Dua nonce yang dibagikan
-alpha1 = randint(1, 2**256)
-alpha2 = randint(1, 2**256)
+alpha1 = randint(1, 2**512)
+alpha2 = randint(1, 2**512)
 
 # Empat pesan
 m1 = "pesan1"
