@@ -1,5 +1,5 @@
+from sage.all import *
 from hashlib import sha256
-from fpylll import IntegerMatrix, LLL
 import random
 
 class CubicPellCurve:
