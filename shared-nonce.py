@@ -1,7 +1,6 @@
+from sage.all import *
 from hashlib import sha256
-from fpylll import IntegerMatrix, LLL
 import random
-import time
 
 class CubicPellCurve:
     def __init__(self, N, a):
