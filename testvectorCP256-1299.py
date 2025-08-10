@@ -1,4 +1,4 @@
-# Tes Vektor ini berdasarkan contoh perhitungan pada https://www.ijcte.org/vol17/IJCTE-V17N2-1371.pdf
+# https://www.ijcte.org/vol17/IJCTE-V17N2-1371.pdf
 
 from sage.all import *
 
@@ -79,75 +79,59 @@ class CubicPellPoint:
 
 from hashlib import sha256
 
-# Parameter sistem
 p = 2**256 - 1299
 print("Parameter p:", p)
-c = 7  # parameter kurva
+c = 7  
 print("Parameter c:", c)
 curve = CubicPellCurve(p, c)
 print(curve)
 phi = p**2 + p + 1
-print("Nilai phi:", phi)
+print("phi:", phi)
 
-# Titik dasar (x, y, z) dari tabel pada c = 7
 G = curve.point(4, 2, 1)
 G = (p+1) * G
-print("Titik dasar G:", G)
+print("G:", G)
 
 lam = 83171353578472409519651024131274511974299080148110592010555215815306508292189
 
 pub = lam * G
-print("Kunci publik:", pub)
+print("Public key:", pub)
 
 alpha = 1898447103622844920724746489941849722817899851712074472424000756938513692055457989388262477747016063373675722356875332766031268189759451703052827185580311
 
 alphaG = alpha * G
-print("Titik alpha * G:", alphaG)
+print("alpha * G:", alphaG)
 
 import hashlib
 
 def sha2_as_integer(message: str) -> int:
-    # Ubah ke bytes
     msg_bytes = message.encode('utf-8')
-
-    # Hitung SHA-256
     sha_digest = hashlib.sha256(msg_bytes).hexdigest()
-
-    # Konversi hasil hash (hex) ke integer
     hash_integer = int(sha_digest, 16)
-
     return hash_integer
 
-# Contoh penggunaan
 msg = "abc"
 sigma = sha2_as_integer(msg)    
-print("Nilai sigma:", sigma)
+print("sigma:", sigma)
 
 s = alpha + sigma * lam
-print("Nilai s:", s)
+print("s:", s)
 
-#signature pair (alphaG, s)
 signature = (alphaG, s)
 print("Signature pair (alphaG, s):", signature)
 
-#verify
-#compute hash of message
 sigma = sha2_as_integer(msg)
 print("Hash of message:", sigma)
 
-#compute Q=s*G
 Q = s * G
 print("Computed Q:", Q)
 
-#compute msg_hash * pub
 msg_hash_pub = sigma * pub
 print("Computed msg_hash * pub:", msg_hash_pub)
 
-#compute Q' = alphaG + sigma*msg_hash_pub
 Q_prime = alphaG + msg_hash_pub
 print("Computed Q':", Q_prime)
 
-#is Q == Q'?
 if Q == Q_prime:
     print("Signature is valid.")
 else:
